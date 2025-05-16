@@ -90,10 +90,6 @@ uploaded_file = st.file_uploader("Выберите CSV-файл", type="csv")
 
 if uploaded_file is not None:
     data = pd.read_csv(uploaded_file)
-    
-    # Удаление последней строки, только если их 1460
-    if data.shape[0] == 1460:
-        data = data.drop(data.index[-1])
 
     processed_data = preprocess_input(data)  # Убедитесь, что функция определена
 
