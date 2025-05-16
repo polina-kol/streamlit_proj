@@ -92,20 +92,32 @@ if uploaded_file is not None:
     data = pd.read_csv(uploaded_file)
     st.write("Данные загружены:", data.shape[0], "строк")
 
-    processed_data = preprocess_input(data)
+    processed_data = preprocess_input(data)  # Убедитесь, что эта функция определена
 
     if st.button("Предсказать стоимость"):
         try:
-            predictions_log = model.predict(processed_data)
+            predictions_log = model.predict(processed_data)  # Убедитесь, что модель загружена
             predictions = np.expm1(predictions_log)
+            
+            # Добавляем предсказания в DataFrame
             data['Predicted_Price'] = predictions
+            
             st.success("Предсказания успешно выполнены!")
-            st.dataframe(data[['Id', 'Predicted_Price']])
 
-            # Кнопка скачивания
-            data.rename(columns={'Predicted_Price': 'SalePrice'}, inplace=True)
-            csv = data[['Id', 'SalePrice']].to_csv(index=False)
-            st.download_button(label="Скачать результаты", data=csv, file_name='csv', mime='text/csv')
+            # Отображаем только Id и предсказанную цену
+            result_df = data[['Id', 'Predicted_Price']].copy()
+            result_df.columns = ['Id', 'SalePrice']  # Переименовываем для финального вывода
+            
+            st.dataframe(result_df)
+
+            # Подготовка к скачиванию
+            csv = result_df.to_csv(index=False)
+            st.download_button(
+                label="Скачать результаты",
+                data=csv,
+                file_name='predicted_prices.csv',
+                mime='text/csv'
+            )
 
         except Exception as e:
             st.error(f"Ошибка при обработке данных: {str(e)}")
