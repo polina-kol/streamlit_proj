@@ -90,6 +90,12 @@ uploaded_file = st.file_uploader("Выберите CSV-файл", type="csv")
 
 if uploaded_file is not None:
     data = pd.read_csv(uploaded_file)
+    
+    if data.shape[0] != 1459:
+        st.warning(f"⚠️ Ожидалось 1459 строк, получено {data.shape[0]}. Результаты могут быть некорректными.")
+    else:
+        st.success("✅ Файл содержит корректное количество строк (1459).")
+    
     st.write("Данные загружены:", data.shape[0], "строк")
 
     processed_data = preprocess_input(data)  # Убедитесь, что эта функция определена
@@ -99,25 +105,27 @@ if uploaded_file is not None:
             predictions_log = model.predict(processed_data)  # Убедитесь, что модель загружена
             predictions = np.expm1(predictions_log)
             
-            # Добавляем предсказания в DataFrame
-            data['Predicted_Price'] = predictions
+            # Создаем DataFrame с Id и предсказаниями
+            result_df = pd.DataFrame({
+                'Id': data['Id'],  # Предполагается, что Id есть в исходных данных
+                'SalePrice': predictions
+            })
             
             st.success("Предсказания успешно выполнены!")
+            st.dataframe(result_df.head())
 
-            # Отображаем только Id и предсказанную цену
-            result_df = data[['Id', 'Predicted_Price']].copy()
-            result_df.columns = ['Id', 'SalePrice']  # Переименовываем для финального вывода
-            
-            st.dataframe(result_df)
-
-            # Подготовка к скачиванию
-            csv = result_df.to_csv(index=False)
-            st.download_button(
-                label="Скачать результаты",
-                data=csv,
-                file_name='predicted_prices.csv',
-                mime='text/csv'
-            )
+            # Проверка, что итоговый датафрейм имеет 1459 строк
+            if result_df.shape[0] != 1459:
+                st.error(f"❌ Итоговое количество строк: {result_df.shape[0]}, ожидалось 1459. Скачивание недоступно.")
+            else:
+                # Подготовка к скачиванию
+                csv = result_df.to_csv(index=False)
+                st.download_button(
+                    label="Скачать результаты",
+                    data=csv,
+                    file_name='predicted_prices.csv',
+                    mime='text/csv'
+                )
 
         except Exception as e:
             st.error(f"Ошибка при обработке данных: {str(e)}")
