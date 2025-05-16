@@ -103,7 +103,8 @@ if uploaded_file is not None:
             st.dataframe(data[['Id', 'Predicted_Price']])
 
             # Кнопка скачивания
-            csv = data[['Id', 'Predicted_Price']].to_csv(index=False)
+            data.rename(columns={'Predicted_Price': 'SalePrice'}, inplace=True)
+            csv = data[['Id', 'SalePrice']].to_csv(index=False)
             st.download_button(label="Скачать результаты", data=csv, file_name='predicted_prices.csv', mime='text/csv')
 
         except Exception as e:
